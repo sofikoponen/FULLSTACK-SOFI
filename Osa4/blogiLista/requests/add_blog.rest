@@ -1,0 +1,10 @@
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkxpaXNhTWlpc2EiLCJpZCI6IjY5NWE1MzFjMGUyZjU0ZTYxNzc1NDIxZiIsImlhdCI6MTc2NzUyNzY5NH0.5xWdTcPEoX6j6jB7FypgefQ6dPST5gtEaSMROMrj0XY
+
+{
+  "title": "Clean Code: The Good, the Bad and the Ugly",
+  "author": "Daniel Gerlach",
+  "url": "https://gerlacdt.github.io/blog/posts/clean_code/",
+  "likes": "0"
+}

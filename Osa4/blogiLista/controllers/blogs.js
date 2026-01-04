@@ -1,80 +1,70 @@
-const jwt = require('jsonwebtoken')
-const blogsRouter = require('express').Router()
+
 const Blog = require('../models/blog')
-const User = require('../models/user')
+const blogsRouter = require('express').Router()
+const { userExtractor } = require('../utils/middleware')
 
-
-blogsRouter.get('/', async (request, response) => {
-    const blogs = await Blog.find({}).populate('user', {username: 1, name: 1})
-    response.json(blogs)
-  })
-
-blogsRouter.get('/:id', async (request, response) => {
-    const blog = await Blog.findById(request.params.id)
-      if (blog) {
-        response.json(blog.toJSON())
-      } else {
-        console.log('blog could not be found')
-        response.status(404).end()
-      }
+blogsRouter.get('/', (request, response) => {
+  Blog.find({})
+    .populate('user', { username: 1, name: 1, id: 1 })
+    .then(blogs => {
+      response.json(blogs)
     })
+})
 
-  
-  blogsRouter.post('/', async (request, response) => {
-    const body = request.body
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    if (!decodedToken.id) {
-      return response.status(401).json({error: 'token invalid'})
-    }
-    const user = await User.findById(decodedToken.id)
-    if (!user) {
-      return response.status(404).json({error: 'user not found'})
-    }
+blogsRouter.post('/', userExtractor, async (request, response) => {
+  const user = request.user
+  const blog = new Blog(request.body)
 
-    if (((body.title === null) || (body.title === undefined)) || (((body.url === null) || (body.url === undefined)))) {
-      response.status(400).end()
+  blog.likes = blog.likes | 0
+  blog.user = user._id
 
-    }else{
-      if ((body.likes === null) || (body.likes === undefined)) {
-        body.likes = 0
-      }
-      const blog = new Blog({
-        title: body.title,
-        author: body.author,
-        user: user.id,
-        url: body.url,
-        likes: body.likes
-      })
+  if (!blog.title || !blog.url) {
+    return response.status(400).send({ error: 'title or url missing' })
+  }
 
-      const savedBlog = await blog.save()
-      user.blogs = user.blogs.concat(savedBlog._id)
-      await user.save()
-    }
-  })
+  user.blogs = user.blogs.concat(blog._id)
+  await user.save()
 
-  blogsRouter.delete('/:id', async (request, response) => {
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    if (!decodedToken.id) {
-      return response.status(401).json({error: 'token invalid'})
-    } else {
-      const blog = await Blog.findById(request.params.id)
-      if (blog.user.toString() === decodedToken.id) {
-        await Blog.findByIdAndDelete(request.params.id)
-        response.status(400).end()
-      } else { 
-        response.status(400).end()
-      }
-    }
-  })
+  const savedBlog = await blog.save()
 
-  blogsRouter.put('/:id', async (request, response) => {
-    const {title, author, url, likes} = request.body
-    const blog = {title, author, url, likes}
+  response.status(201).json(savedBlog)
+})
 
-    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {new: true})
-    response.json(updatedBlog)
-    })
+blogsRouter.delete('/:id', userExtractor, async (request, response) => {
+  const user = request.user
+  const blog = await Blog.findById(request.params.id)
 
-  
+  if (!blog) {
+    return response.status(204).end()
+  }
 
-  module.exports = blogsRouter
+  if (user.id.toString() !== blog.user.toString()) {
+    return response.status(403).json({ error: 'user not authorized' })
+  }
+
+  user.blogs = user.blogs.filter(b => b.id.toString() !== blog.id.toString())
+
+  await blog.deleteOne()
+  response.status(204).end()
+})
+
+blogsRouter.put('/:id', async (request, response) => {
+  const { title, author, url, likes } = request.body
+
+  const blog = await Blog.findById(request.params.id)
+
+  if (!blog) {
+    return response.status(404).end()
+  }
+
+  blog.title = title
+  blog.author = author
+  blog.url = url
+  blog.likes = likes
+
+  const updatedBlog = await blog.save()
+
+  response.json(updatedBlog)
+})
+
+module.exports = blogsRouter
