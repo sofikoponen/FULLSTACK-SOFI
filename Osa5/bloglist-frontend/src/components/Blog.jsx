@@ -33,12 +33,12 @@ const Blog = ({ user, blog, setBlogs, addLike, getAll, removeBlog }) => {
           <p style={pStyle}>URL: {blog.url}</p>
           <p style={pStyle}>
             {"Likes:"} {blog.likes}
-            <button onClick={() => handleLike(blog)}>likes</button>
+            <button onClick={() => handleLike(blog)}>like</button>
           </p>
 
           <p style={pStyle}>user: {username ? username : ""}</p>
           <p>
-            {user?.username == blog.user?.username && (
+            {user?.username === blog.user?.username && (
               <button onClick={() => handleRemove(blog)}>remove</button>
             )}
           </p>

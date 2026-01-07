@@ -12,6 +12,7 @@ const NewBlogForm = ({
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("");
+
   const handleCreateBlog = async (event) => {
     event.preventDefault();
     console.log("adding blog");
@@ -41,6 +42,7 @@ const NewBlogForm = ({
               type="text"
               value={title}
               onChange={({ target }) => setTitle(target.value)}
+              placeholder="write title here"
             />
           </label>
         </div>
@@ -51,6 +53,7 @@ const NewBlogForm = ({
               type="text"
               value={author}
               onChange={({ target }) => setAuthor(target.value)}
+              placeholder="write author here"
             />
           </label>
         </div>
@@ -61,6 +64,7 @@ const NewBlogForm = ({
               type="text"
               value={url}
               onChange={({ target }) => setUrl(target.value)}
+              placeholder="write url here"
             />
           </label>
         </div>
