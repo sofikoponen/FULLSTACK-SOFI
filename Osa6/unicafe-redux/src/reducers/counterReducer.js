@@ -29,7 +29,7 @@ const counterReducer = (state = initialState, action) => {
       return badIncremented;
     }
     case "RESET":
-      return initialState;
+      return { ...initialState };
     default:
       return state;
   }
