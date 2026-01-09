@@ -1,3 +1,5 @@
+import { createSlice } from "@reduxjs/toolkit";
+
 const anecdotesAtStart = [
   "If it hurts, do it more often",
   "Adding manpower to a late software project makes it later!",
@@ -19,42 +21,30 @@ const asObject = (anecdote) => {
 
 const initialState = anecdotesAtStart.map(asObject);
 
-const reducer = (state = initialState, action) => {
-  switch (action.type) {
-    case "NEW_DOTE": {
-      const newDote = { ...action.payload, votes: 0 };
-      return [...state, newDote];
-    }
-    case "VOTE": {
-      const id = action.payload.id;
+const doteSlice = createSlice({
+  name: "anecdotes",
+  initialState,
+  reducers: {
+    createNewDote(state, action) {
+      const content = action.payload;
+      state.push({
+        content,
+        important: false,
+        id: getId(),
+        votes: 0,
+      });
+    },
+    voteForDote(state, action) {
+      const id = action.payload;
       const doteToVote = state.find((n) => n.id === id);
       const changedDote = {
         ...doteToVote,
         votes: doteToVote.votes + 1,
       };
-      return state.map((note) => (note.id !== id ? note : changedDote));
-    }
-    default:
-      return state;
-  }
-};
-
-export const voteForDote = (id) => {
-  return {
-    type: "VOTE",
-    payload: { id },
-  };
-};
-
-export const createNewDote = (content) => {
-  return {
-    type: "NEW_DOTE",
-    payload: {
-      content,
-      important: false,
-      id: getId(),
+      return state.map((dote) => (dote.id !== id ? dote : changedDote));
     },
-  };
-};
+  },
+});
 
-export default reducer;
+export const { createNewDote, voteForDote } = doteSlice.actions;
+export default doteSlice.reducer;
