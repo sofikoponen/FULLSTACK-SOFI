@@ -1,50 +1,47 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-const anecdotesAtStart = [
-  "If it hurts, do it more often",
-  "Adding manpower to a late software project makes it later!",
-  "The first 90 percent of the code accounts for the first 90 percent of the development time...The remaining 10 percent of the code accounts for the other 90 percent of the development time.",
-  "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.",
-  "Premature optimization is the root of all evil.",
-  "Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.",
-];
-
-const getId = () => (100000 * Math.random()).toFixed(0);
-
-const asObject = (anecdote) => {
-  return {
-    content: anecdote,
-    id: getId(),
-    votes: 0,
-  };
-};
-
-const initialState = anecdotesAtStart.map(asObject);
+import doteService from "../services/anecdotes";
 
 const doteSlice = createSlice({
   name: "anecdotes",
-  initialState,
+  initialState: [],
   reducers: {
+    setAnecdotes(state, action) {
+      return action.payload;
+    },
     createNewDote(state, action) {
       const content = action.payload;
-      state.push({
-        content,
-        important: false,
-        id: getId(),
-        votes: 0,
-      });
+      state.push({ ...content, votes: 0 });
     },
     voteForDote(state, action) {
-      const id = action.payload;
-      const doteToVote = state.find((n) => n.id === id);
-      const changedDote = {
-        ...doteToVote,
-        votes: doteToVote.votes + 1,
-      };
-      return state.map((dote) => (dote.id !== id ? dote : changedDote));
+      const updatedDote = action.payload;
+      return state.map((dote) =>
+        dote.id !== updatedDote.id ? dote : updatedDote
+      );
     },
   },
 });
 
-export const { createNewDote, voteForDote } = doteSlice.actions;
+const { setAnecdotes, createNewDote, voteForDote } = doteSlice.actions;
+
+export const initializeDotes = () => {
+  return async (dispatch) => {
+    const dotes = await doteService.getAll();
+    dispatch(setAnecdotes(dotes));
+  };
+};
+
+export const newDote = (content) => {
+  return async (dispatch) => {
+    const newDote = await doteService.createNew(content);
+    dispatch(createNewDote(newDote));
+  };
+};
+
+export const voteDote = (content) => {
+  return async (dispatch) => {
+    const updatedDote = await doteService.vote(content);
+    dispatch(voteForDote(updatedDote));
+  };
+};
+
 export default doteSlice.reducer;

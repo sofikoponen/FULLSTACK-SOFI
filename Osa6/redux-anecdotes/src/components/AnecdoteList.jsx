@@ -1,19 +1,13 @@
-import { voteForDote } from "../reducers/anecdoteReducer";
+import { voteDote } from "../reducers/anecdoteReducer";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  showNotification,
-  clearNotification,
-} from "../reducers/notificationReducer";
+import { openNotification } from "../reducers/notificationReducer";
 
 const AnecdoteList = () => {
   const dispatch = useDispatch();
 
-  const handleVote = (anecdote) => {
-    dispatch(voteForDote(anecdote.id));
-    dispatch(showNotification(`Voted for: ${anecdote.content}`));
-    setTimeout(() => {
-      dispatch(clearNotification());
-    }, 5000);
+  const handleVote = async (anecdote) => {
+    dispatch(voteDote(anecdote));
+    dispatch(openNotification(`Voted for: ${anecdote.content}`, 5));
   };
 
   const anecdotes = useSelector((state) => {
